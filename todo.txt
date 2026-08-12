@@ -1,1 +1,1 @@
---cli
+--lire docs/development md

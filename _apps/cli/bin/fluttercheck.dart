@@ -1,57 +1,18 @@
-import 'package:args/args.dart';
+import 'dart:io';
 
-const String version = '0.0.1';
+import 'package:cli/src/commands/check_command.dart';
 
-ArgParser buildParser() {
-  return ArgParser()
-    ..addFlag(
-      'help',
-      abbr: 'h',
-      negatable: false,
-      help: 'Print this usage information.',
-    )
-    ..addFlag(
-      'verbose',
-      abbr: 'v',
-      negatable: false,
-      help: 'Show additional command output.',
-    )
-    ..addFlag('version', negatable: false, help: 'Print the tool version.');
-}
-
-void printUsage(ArgParser argParser) {
-  print('Usage: dart cli.dart <flags> [arguments]');
-  print(argParser.usage);
-}
-
-void main(List<String> arguments) {
-  final ArgParser argParser = buildParser();
-  try {
-    final ArgResults results = argParser.parse(arguments);
-    bool verbose = false;
-
-    // Process the parsed arguments.
-    if (results.flag('help')) {
-      printUsage(argParser);
-      return;
-    }
-    if (results.flag('version')) {
-      print('cli version: $version');
-      return;
-    }
-    if (results.flag('verbose')) {
-      verbose = true;
-    }
-
-    // Act on the arguments provided.
-    print('Positional arguments: ${results.rest}');
-    if (verbose) {
-      print('[VERBOSE] All arguments: ${results.arguments}');
-    }
-  } on FormatException catch (e) {
-    // Print usage information if an invalid argument was provided.
-    print(e.message);
-    print('');
-    printUsage(argParser);
+Future<void> main(List<String> arguments) async {
+  // Deliberately minimal contract for now: `fluttercheck check [path]`
+  // only. The other commands sketched in the project doc (analyze,
+  // fix, verify) aren't created yet — their exact contract hasn't
+  // been decided (see the project doc's section on the CLI).
+  if (arguments.isEmpty || arguments.first != 'check') {
+    stderr.writeln('Usage: fluttercheck check [path]');
+    exit(64); // EX_USAGE
   }
+
+  final path = arguments.length > 1 ? arguments[1] : Directory.current.path;
+  final exitCode = await CheckCommand().run(path);
+  exit(exitCode);
 }
