@@ -1,0 +1,34 @@
+On peut passer à la Phase 1 (Core).
+
+Ordre de codage que je propose, en respectant la dépendance logique entre les couches 
+(une couche ne doit pouvoir compiler que si celles d'en dessous existent déjà) :
+
+models/ — fonder le vocabulaire métier en premier, car tout le reste en dépend : 
+version.dart, constraint.dart, package.dart, dependency.dart, environment.dart, project.dart, 
+dependency_graph.dart, issue.dart, recommendation.dart, fix.dart, analysis_result.dart. 
+Ce sont des classes de données pures, pas de logique — on pose juste la forme des objets 
+qu'on va manipuler.
+versions/ — logique SemVer/pub sur les Version (comparaison, parsing de string en Version, etc.)
+. S'appuie uniquement sur models/version.dart.
+constraints/ — interprétation des contraintes (^1.2.3, >=1.0.0 <2.0.0, etc.) : est-ce qu'une 
+Version satisfait une Constraint. S'appuie sur versions/.
+parsers/ — pubspec_parser.dart et pubspec_lock_parser.dart : transformer 
+un pubspec.yaml/pubspec.lock brut en Project/Dependency (nos modèles). 
+S'appuie sur models/ et constraints/ pour interpréter les contraintes lues.
+dependencies/ — construction de la liste de dépendances directes/transitives 
+d'un projet à partir de ce que les parsers ont extrait.
+graph/ — assemblage du graphe de dépendances (DependencyGraph) à partir de dependencies/.
+analyzer/ — les 3 fichiers déjà stubbés (project_analyzer, dependency_analyzer, 
+compatibility_analyzer) : détection des conflits/incompatibilités à partir du graphe 
+et des contraintes. C'est ici qu'on répond à "quels conflits, pourquoi".
+Pause research obligatoire (section 14) — avant d'aller plus loin, on doit étudier 
+précisément comment Pub résout réellement les conflits (algorithme de résolution, 
+ce que pub.dev expose comme métadonnées, etc.) avant d'écrire resolver/. 
+Je m'arrêterai à ce moment-là pour qu'on fasse cette recherche ensemble plutôt que de deviner.
+resolver/ — proposer des versions compatibles, seulement après l'étape 8.
+recommendations/ — traduire les résultats du resolver en recommandations lisibles pour 
+le développeur.
+fixes/ — génération de corrections concrètes (ex. réécriture de pubspec.yaml).
+verification/ — vérifier qu'une correction appliquée résout bien le problème initial.
+
+Pas de tests à écrire pour l'instant, comme convenu — on les ajoutera dans la Phase 3 dédiée.
