@@ -11,3 +11,5 @@ export 'src/models/recommendation.dart';
 export 'src/models/version.dart';
 export 'src/versions/version_utils.dart';
 export 'src/constraints/constraint_utils.dart';
+export 'src/parsers/pubspec_lock_parser.dart';
+export 'src/parsers/pubspec_parser.dart';
