@@ -40,6 +40,17 @@ class PubspecParser {
       throw const PubspecParseException('pubspec.yaml must be a YAML map');
     }
 
+    return parseMap(doc);
+  }
+
+  /// Interprets an already-parsed pubspec structure (a Map, however it
+  /// was obtained — from YAML via [parse], or from JSON such as the
+  /// `pubspec` field returned by the pub.dev API for a given package
+  /// version) into [PubspecData].
+  ///
+  /// Throws a [PubspecParseException] if [doc] doesn't have the shape
+  /// expected of a pubspec (e.g. missing `name`).
+  static PubspecData parseMap(Map doc) {
     final name = doc['name'];
     if (name is! String || name.isEmpty) {
       throw const PubspecParseException(
