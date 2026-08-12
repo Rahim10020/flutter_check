@@ -53,8 +53,20 @@ class ProjectLoader {
       lockData: lockData,
     );
 
-    final installedDart = await _installedDartVersion();
-    final installedFlutter = await _installedFlutterVersion();
+    final flutterInfo = await _flutterVersionInfo();
+
+    // For a Flutter project, the Dart SDK that actually matters is the
+    // one bundled with that Flutter installation (`dartSdkVersion`),
+    // not necessarily the SDK running this CLI (`Platform.version`) —
+    // those can differ if the CLI itself runs on a separately
+    // installed Dart. Only fall back to `Platform.version` when no
+    // Flutter installation was found at all (a plain Dart project).
+    final installedDart = flutterInfo != null
+        ? Version.tryParse(flutterInfo['dartSdkVersion'] as String? ?? '')
+        : _platformDartVersion();
+    final installedFlutter = flutterInfo != null
+        ? Version.tryParse(flutterInfo['frameworkVersion'] as String? ?? '')
+        : null;
 
     if (installedDart == null && installedFlutter == null) {
       return project;
@@ -71,19 +83,20 @@ class ProjectLoader {
     );
   }
 
-  /// The Dart SDK actually running this CLI. [Platform.version] looks
+  /// The Dart SDK running this CLI itself. [Platform.version] looks
   /// like "3.4.0 (stable) (...) on ...\n" — only the leading semver
-  /// token is meaningful here.
-  Future<Version?> _installedDartVersion() async {
+  /// token is meaningful here. Only used as a fallback when no
+  /// Flutter installation is found (see [load]).
+  Version? _platformDartVersion() {
     final token = Platform.version.split(' ').first;
     return Version.tryParse(token);
   }
 
-  /// The installed Flutter SDK version, obtained by running
-  /// `flutter --version --machine`. Returns null (not an error) if
-  /// `flutter` isn't on PATH — a pure Dart project legitimately has
-  /// no Flutter SDK installed.
-  Future<Version?> _installedFlutterVersion() async {
+  /// Runs `flutter --version --machine` and returns the parsed JSON,
+  /// or null if `flutter` isn't on PATH, isn't runnable, or its output
+  /// can't be parsed — all of which legitimately mean "no Flutter SDK
+  /// available here", not an error worth surfacing.
+  Future<Map<String, dynamic>?> _flutterVersionInfo() async {
     ProcessResult result;
     try {
       result = await Process.run('flutter', ['--version', '--machine']);
@@ -94,9 +107,7 @@ class ProjectLoader {
     if (result.exitCode != 0) return null;
 
     try {
-      final json = jsonDecode(result.stdout as String) as Map<String, dynamic>;
-      final versionString = json['frameworkVersion'] as String?;
-      return versionString != null ? Version.tryParse(versionString) : null;
+      return jsonDecode(result.stdout as String) as Map<String, dynamic>;
     } catch (_) {
       return null;
     }
