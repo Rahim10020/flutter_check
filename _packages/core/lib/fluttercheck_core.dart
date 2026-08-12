@@ -16,3 +16,6 @@ export 'src/parsers/pubspec_parser.dart';
 export 'src/dependencies/dependency_merger.dart';
 export 'src/dependencies/project_builder.dart';
 export 'src/graph/graph_builder.dart';
+export 'src/analyzer/compatibility_analyzer.dart';
+export 'src/analyzer/dependency_analyzer.dart';
+export 'src/analyzer/project_analyzer.dart';
