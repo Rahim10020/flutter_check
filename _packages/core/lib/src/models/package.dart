@@ -11,6 +11,11 @@ enum PackageSource {
 
   /// Provided by an SDK (e.g. "flutter", "flutter_test") rather than pub.
   sdk,
+
+  /// A synthetic source representing the project itself, used as the
+  /// origin of dependency-graph edges for directly declared
+  /// dependencies. Never represents a real, resolvable package.
+  project,
 }
 
 /// Identifies a single Dart/Flutter package, independent of any
@@ -47,6 +52,11 @@ class Package {
   /// Convenience constructor for an SDK-provided package such as "flutter".
   const Package.sdkPackage(String name)
     : this(name: name, source: PackageSource.sdk, sdk: name);
+
+  /// A synthetic node representing the project itself, used as the
+  /// `from` endpoint of edges to directly declared dependencies.
+  const Package.project(String name)
+    : this(name: name, source: PackageSource.project);
 
   @override
   bool operator ==(Object other) =>
