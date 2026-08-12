@@ -15,3 +15,4 @@ export 'src/parsers/pubspec_lock_parser.dart';
 export 'src/parsers/pubspec_parser.dart';
 export 'src/dependencies/dependency_merger.dart';
 export 'src/dependencies/project_builder.dart';
+export 'src/graph/graph_builder.dart';
