@@ -1,0 +1,7 @@
+packages:
+  - "apps/web"
+  # futurs membres JS/TS ajoutés ici plus tard
+
+allowBuilds:
+  sharp: false
+  unrs-resolver: false
