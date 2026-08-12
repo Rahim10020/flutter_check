@@ -3,4 +3,14 @@
 /// More dartdocs go here.
 library;
 
-// TODO: Export any libraries intended for clients of this package.
+export 'src/models/analysis_result.dart';
+export 'src/models/constraint.dart';
+export 'src/models/dependency.dart';
+export 'src/models/dependency_graph.dart';
+export 'src/models/environment.dart';
+export 'src/models/fix.dart';
+export 'src/models/issue.dart';
+export 'src/models/package.dart';
+export 'src/models/project.dart';
+export 'src/models/recommendation.dart';
+export 'src/models/version.dart';
