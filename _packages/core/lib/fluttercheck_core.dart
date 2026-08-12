@@ -24,3 +24,4 @@ export 'src/models/package_metadata.dart';
 export 'src/models/pub_solve_result.dart';
 export 'src/resolver/dependency_resolver.dart';
 export 'src/resolver/pub_runner.dart';
+export 'src/recommendations/issue_recommender.dart';
