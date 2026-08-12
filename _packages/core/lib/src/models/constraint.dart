@@ -15,6 +15,15 @@ class Constraint {
 
   Constraint._(this._value);
 
+  /// Creates a [Constraint] from an
+  /// already-computed pub_semver value — used by the `constraints`
+  /// layer when combining constraints (intersection, union).
+  ///
+  /// This is public because Dart privacy is library-scoped and the
+  /// constraint-combination utilities live in a separate library.
+  factory Constraint.fromRaw(semver.VersionConstraint raw) =>
+      Constraint._(raw);
+
   /// Parses a constraint string such as "^1.2.3" or ">=1.0.0 <2.0.0".
   ///
   /// Throws a [FormatException] if [input] is not a valid constraint.
