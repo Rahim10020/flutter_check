@@ -9,3 +9,4 @@ export 'src/models/package.dart';
 export 'src/models/project.dart';
 export 'src/models/recommendation.dart';
 export 'src/models/version.dart';
+export 'src/versions/version_utils.dart';
