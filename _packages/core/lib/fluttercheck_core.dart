@@ -27,3 +27,5 @@ export 'src/resolver/pub_runner.dart';
 export 'src/recommendations/issue_recommender.dart';
 export 'src/fixes/fix_generator.dart';
 export 'src/fixes/pubspec_editor.dart';
+export 'src/models/verification_result.dart';
+export 'src/verification/fix_verifier.dart';
