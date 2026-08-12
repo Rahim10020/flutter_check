@@ -41,6 +41,23 @@ class Environment {
     return flutterSdkConstraint!.allows(installedFlutterVersion!);
   }
 
+  /// Returns a copy of this [Environment] with the given fields
+  /// replaced. Used by loaders that discover installed SDK versions
+  /// (e.g. by running `dart --version`/`flutter --version`) after the
+  /// environment was first built from a pubspec's declared constraints.
+  Environment copyWith({
+    Version? installedDartVersion,
+    Version? installedFlutterVersion,
+  }) {
+    return Environment(
+      dartSdkConstraint: dartSdkConstraint,
+      flutterSdkConstraint: flutterSdkConstraint,
+      installedDartVersion: installedDartVersion ?? this.installedDartVersion,
+      installedFlutterVersion:
+          installedFlutterVersion ?? this.installedFlutterVersion,
+    );
+  }
+
   @override
   String toString() =>
       'Environment(dart: $dartSdkConstraint, flutter: $flutterSdkConstraint)';
