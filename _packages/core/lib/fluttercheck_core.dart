@@ -19,3 +19,5 @@ export 'src/graph/graph_builder.dart';
 export 'src/analyzer/compatibility_analyzer.dart';
 export 'src/analyzer/dependency_analyzer.dart';
 export 'src/analyzer/project_analyzer.dart';
+export 'src/metadata/package_metadata_source.dart';
+export 'src/models/package_metadata.dart';
