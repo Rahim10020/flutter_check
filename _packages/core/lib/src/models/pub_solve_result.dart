@@ -13,59 +13,101 @@ enum PubCommand {
 
   /// `dart/flutter pub upgrade --major-versions --dry-run` — resolves
   /// allowing upgrades beyond declared constraints (constraints would
-  /// be widened).
+  /// be widened). Not supported by [LockfileSandbox] as of V1 — see
+  /// that contract's documentation.
   upgradeMajorVersionsDryRun,
 }
 
 /// Whether a dry-run solve succeeded or failed.
-enum PubSolveOutcome {
-  /// Pub found a set of versions satisfying every constraint.
-  solved,
+enum PubSolveOutcome { solved, failed }
 
-  /// Pub could not find any solution — a genuine version conflict.
-  failed,
+/// What kind of change a [PubDependencyChange] represents.
+enum ChangeKind {
+  /// The package is newly present in the lockfile (was absent before).
+  added,
+
+  /// The package is no longer present in the lockfile.
+  removed,
+
+  /// The package's locked version changed.
+  changed,
 }
 
-/// A single version change pub would make as part of a solve.
+/// A single, structured change between two lockfile states for one
+/// package.
+///
+/// Invariants, enforced by the named constructors — never construct
+/// this any other way:
+/// - [ChangeKind.added]: [from] is null, [to] is non-null.
+/// - [ChangeKind.removed]: [from] is non-null, [to] is null.
+/// - [ChangeKind.changed]: both [from] and [to] are non-null.
 class PubDependencyChange {
   final Package package;
-
-  /// Null if this is a new dependency being added rather than an
-  /// existing one changing version.
+  final ChangeKind kind;
   final Version? from;
-  final Version to;
+  final Version? to;
 
-  const PubDependencyChange({
+  const PubDependencyChange._({
     required this.package,
+    required this.kind,
+    required this.from,
     required this.to,
-    this.from,
   });
 
+  factory PubDependencyChange.added({
+    required Package package,
+    required Version to,
+  }) => PubDependencyChange._(
+    package: package,
+    kind: ChangeKind.added,
+    from: null,
+    to: to,
+  );
+
+  factory PubDependencyChange.removed({
+    required Package package,
+    required Version from,
+  }) => PubDependencyChange._(
+    package: package,
+    kind: ChangeKind.removed,
+    from: from,
+    to: null,
+  );
+
+  factory PubDependencyChange.changed({
+    required Package package,
+    required Version from,
+    required Version to,
+  }) => PubDependencyChange._(
+    package: package,
+    kind: ChangeKind.changed,
+    from: from,
+    to: to,
+  );
+
   @override
-  String toString() => from != null
-      ? '${package.name}: $from → $to'
-      : '${package.name}: → $to (new)';
+  String toString() {
+    switch (kind) {
+      case ChangeKind.added:
+        return '${package.name}: → $to (added)';
+      case ChangeKind.removed:
+        return '${package.name}: $from → (removed)';
+      case ChangeKind.changed:
+        return '${package.name}: $from → $to';
+    }
+  }
 }
 
 /// The result of running a dry-run pub command against a project.
-///
-/// This is produced by a [PubRunner] implementation (outside the
-/// Core) that actually invoked `dart pub` or `flutter pub` as a
-/// subprocess — the Core never guesses at this outcome, it only
-/// interprets a result that real pub already computed.
 class PubSolveResult {
   final PubCommand command;
   final PubSolveOutcome outcome;
-
-  /// The exact, unmodified text pub printed. When [outcome] is
-  /// [PubSolveOutcome.failed], this is pub's own PubGrub-generated
-  /// explanation — already written to be human-readable, and the
-  /// most reliable explanation available for *why* no solution
-  /// exists.
   final String rawOutput;
 
-  /// The version changes pub would make. Empty when [outcome] is
-  /// [PubSolveOutcome.failed].
+  /// Always empty as produced by [PubRunner] implementations directly
+  /// (dry-run output isn't reliably parseable — see [PubProcessRunner]'s
+  /// documentation). Populated only via [LockfileSandbox], which is a
+  /// separate, explicit step — see [DependencyResolver].
   final List<PubDependencyChange> changes;
 
   const PubSolveResult({
@@ -79,28 +121,11 @@ class PubSolveResult {
 }
 
 /// A single package's outdated-ness, as reported by `pub outdated`.
-///
-/// Field names deliberately don't mirror `dart pub outdated --json`'s
-/// own schema — that mapping is the responsibility of whatever
-/// implements [PubRunner] outside the Core. This model only commits
-/// to the concepts that schema exposes, not its exact shape, so a
-/// future change to pub's JSON format doesn't ripple into the Core.
 class OutdatedPackageInfo {
   final Package package;
-
-  /// The version currently locked in pubspec.lock, if any.
   final Version? current;
-
-  /// The highest version obtainable by `pub upgrade` without
-  /// changing any declared constraint.
   final Version? upgradable;
-
-  /// The highest version obtainable by `pub upgrade --major-versions`
-  /// (may require widening a declared constraint).
   final Version? resolvable;
-
-  /// The latest version published for this package, regardless of
-  /// whether it's currently reachable under any constraint.
   final Version? latest;
 
   const OutdatedPackageInfo({
