@@ -23,6 +23,8 @@ export 'src/metadata/package_metadata_source.dart';
 export 'src/models/package_metadata.dart';
 export 'src/models/pub_solve_result.dart';
 export 'src/resolver/dependency_resolver.dart';
+export 'src/resolver/lockfile_sandbox.dart';
+export 'src/resolver/project_workspace.dart';
 export 'src/resolver/pub_runner.dart';
 export 'src/recommendations/issue_recommender.dart';
 export 'src/fixes/fix_generator.dart';

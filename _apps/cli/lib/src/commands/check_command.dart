@@ -3,8 +3,10 @@ import 'dart:io';
 import 'package:fluttercheck_core/fluttercheck_core.dart';
 
 import '../outputs/text_report_writer.dart';
+import '../services/lockfile_sandbox_impl.dart';
 import '../services/project_loader.dart';
 import '../services/pub_process_runner.dart';
+import '../services/project_workspace_impl.dart';
 
 /// Implements `fluttercheck check`: loads a project, analyzes it, and
 /// asks a real `pub` process whether its dependencies actually
@@ -13,10 +15,17 @@ import '../services/pub_process_runner.dart';
 class CheckCommand {
   final ProjectLoader _loader;
   final PubRunner _pubRunner;
+  final LockfileSandbox _lockfileSandbox;
 
-  CheckCommand({ProjectLoader? loader, PubRunner? pubRunner})
-    : _loader = loader ?? const ProjectLoader(),
-      _pubRunner = pubRunner ?? PubProcessRunner();
+  CheckCommand({
+    ProjectLoader? loader,
+    PubRunner? pubRunner,
+    LockfileSandbox? lockfileSandbox,
+  }) : _loader = loader ?? const ProjectLoader(),
+       _pubRunner = pubRunner ?? PubProcessRunner(),
+       _lockfileSandbox =
+           lockfileSandbox ??
+           LockfileSandboxImpl(workspace: ProjectWorkspaceImpl());
 
   /// Runs the check for the project at [rootPath]. Returns the
   /// process exit code: 0 if no error-severity issue was found or
@@ -36,6 +45,7 @@ class CheckCommand {
     try {
       resolution = await DependencyResolver(
         pubRunner: _pubRunner,
+        lockfileSandbox: _lockfileSandbox,
       ).resolve(project);
     } on PubRunnerException catch (e) {
       stderr.writeln('Could not run pub: ${e.message}');
